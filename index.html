@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo — Nowa wersja Blog WPG (jesienna)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f7d291;
+      --accent-dark:#7a1f12;
+      --accent-start:#d15518;
+      --accent-end:#f69628;
+      --card:#ffffff;
+      --rounded:16px;
+      --container-w:820px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Roboto, Arial, sans-serif;
+      background:var(--bg);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      color:var(--accent-dark);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .wrap{
+      width:100%;
+      max-width:var(--container-w);
+      background:linear-gradient(180deg, rgba(255,250,242,0.95) 0%, rgba(255,255,255,0.9) 100%);
+      border-radius:var(--rounded);
+      padding:28px;
+      box-shadow:0 12px 40px rgba(0,0,0,0.12);
+      text-align:center;
+      overflow:hidden;
+      position:relative;
+      max-height:calc(100vh - 48px);
+      overflow:auto;
+    }
+
+    /* Decorative final title (will show only "Wiara Przenosi Góry" or custom text) */
+    .brand{
+      font-family:Pacifico, sans-serif;
+      font-size:44px;
+      color:var(--accent-dark);
+      margin:6px 0 4px 0;
+      opacity:0;
+      transform:translateY(8px);
+      transition:opacity 1s ease, transform 1s ease;
+    }
+    .brand.show{opacity:1; transform:none}
+
+    /* small decorative leaf under final title */
+    .leaf-deco{
+      width:86px;
+      height:auto;
+      margin:6px auto 0;
+      opacity:0;
+      transform:translateY(6px);
+      transition:opacity 1s ease .2s, transform 1s ease .2s;
+      fill: #9b4a14;
+    }
+    .leaf-deco.show{opacity:1; transform:none}
+
+    /* message area */
+    .msg{
+      min-height:130px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:20px;
+      line-height:1.3;
+      color:var(--accent-dark);
+      margin-top:6px;
+    }
+    .msg .text{
+      display:inline-block;
+      padding:12px 18px;
+      border-radius:12px;
+      background:linear-gradient(90deg, rgba(209,85,24,0.04), rgba(246,150,40,0.03));
+      color:var(--accent-dark);
+      opacity:0;
+      transform:translateY(12px) scale(.985);
+    }
+
+    /* longer appear / disappear animations */
+    .in { animation:msgIn 1s cubic-bezier(.2,.9,.2,1) forwards; }
+    .out { animation:msgOut .9s cubic-bezier(.3,.8,.25,1) forwards; }
+    @keyframes msgIn { from{opacity:0; transform:translateY(12px) scale(.985)} to{opacity:1; transform:none} }
+    @keyframes msgOut { from{opacity:1; transform:none} to{opacity:0; transform:translateY(-12px) scale(.985)} }
+
+    /* octagon circular button */
+    .center-control{
+      margin-top:18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      flex-direction:column;
+    }
+    .octagon{
+      width:96px; height:96px;
+      display:grid; place-items:center;
+      background:linear-gradient(180deg,var(--accent-start),var(--accent-end));
+      clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+      border-radius:14px;
+      box-shadow:0 10px 26px rgba(209,85,24,0.18);
+      cursor:pointer;
+      border:3px solid rgba(255,255,255,0.12);
+      transition:transform .18s ease, box-shadow .18s ease;
+    }
+    .octagon:active{ transform:translateY(2px) scale(.99) }
+    .octagon svg{ width:46px; height:46px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.12)); }
+
+    /* helper text */
+    .hint{font-size:13px;color:rgba(122,31,18,.8); margin-top:10px}
+
+    /* language & name form */
+    .panel{
+      margin-top:16px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+    .lang-btn{
+      padding:12px 20px;
+      border-radius:12px;
+      border:1px solid rgba(122,31,18,.08);
+      background:linear-gradient(90deg, rgba(209,85,24,0.06), rgba(246,150,40,0.03));
+      cursor:pointer;
+      font-weight:700;
+      min-width:120px;
+    }
+    .lang-btn:focus{outline:3px solid rgba(209,85,24,.14)}
+    .name-form{display:flex; gap:8px; align-items:center; justify-content:center; margin-top:12px;}
+    .name-input{padding:12px 14px;border-radius:10px;border:1px solid rgba(0,0,0,0.08); min-width:260px}
+    .next-btn{padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent-start),var(--accent-end));color:#fff;border:none;cursor:pointer;font-weight:700}
+    .next-btn:disabled{opacity:.5; cursor:not-allowed}
+
+    /* final CTA */
+    .final-screen{ margin-top:18px; display:flex; flex-direction:column; align-items:center; gap:10px; opacity:0; transform:translateY(12px); transition:opacity 1s ease, transform 1s ease; }
+    .final-screen.show{ opacity:1; transform:none }
+    .cta-link{
+      display:inline-flex; align-items:center; gap:10px;
+      padding:12px 18px; border-radius:12px;
+      background:linear-gradient(90deg,var(--accent-start),var(--accent-end));
+      color:#fff; text-decoration:none; font-weight:700;
+      box-shadow:0 10px 30px rgba(209,85,24,.18);
+    }
+
+    /* remove any internal white box under title by ensuring transparent backgrounds for inserted pieces */
+    .personal-note{ background:transparent; color:rgba(122,31,18,.85); font-size:14px; margin-top:6px; }
+
+    /* make sure content fits on smaller screens and scrolls if necessary */
+    @media (max-width:520px){
+      body{padding:12px}
+      .wrap{padding:18px}
+      .brand{font-size:34px}
+      .msg{font-size:18px; min-height:110px}
+      .octagon{width:80px;height:80px}
+      .octagon svg{width:34px;height:34px}
+      .name-input{min-width:160px}
+    }
+
+    /* extra mobile portrait polish */
+    @media (max-width:420px) and (orientation:portrait){
+      .wrap{max-height:calc(100vh - 24px); padding:14px}
+      .brand{font-size:28px}
+      .msg{font-size:17px; min-height:90px}
+      .octagon{width:72px;height:72px}
+      .octagon svg{width:30px;height:30px}
+      .name-input{min-width:140px}
+      .hint{font-size:14px}
+      .panel{gap:8px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" role="main" aria-labelledby="demo-title">
+    <div id="titleWrap" style="display:block">
+      <!-- final title will show only "Wiara Przenosi Góry" or custom text -->
+      <div id="brand" class="brand" aria-hidden="true">Wiara Przenosi Góry</div>
+      <svg id="leafDeco" class="leaf-deco" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 2c4 0 8 2 10 6-3 1-6 5-10 8-4-3-7-6-10-8 2-4 6-6 10-6z" />
+      </svg>
+    </div>
+
+    <div class="msg" id="msgArea" aria-live="polite">
+      <div class="text" id="msgText" aria-hidden="false"></div>
+    </div>
+
+    <div id="arrowTopContainer"></div>
+
+    <div class="center-control" id="controlArea" aria-hidden="true" style="display:none">
+      <button class="octagon" id="startBtn" aria-label="Przejdź do nowej wersji" title="Przejdź do nowej wersji">
+        <!-- arrow icon -->
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.08)"/>
+          <path d="M8 12h8M14 8l4 4-4 4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="flowArea" style="margin-top:8px"></div>
+
+    <!-- final CTA area (hidden until the end) -->
+    <div class="final-screen" id="finalScreen" aria-hidden="true">
+      <div class="personal-note" id="personalNote" style="display:none"></div>
+      <a id="finalLink" class="cta-link" href="https://blogwpg.my.canva.site/" target="_blank" rel="noopener noreferrer">Przejdź do Bloga →</a>
+    </div>
+
+    <div style="margin-top:14px" id="footerNote">
+      <div class="hint">Teraz nic nie klikaj</div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // messages sequence (Polish) - longer hold times for spokojniejszy efekt
+      const sequence = [
+        {text:'Witaj', hold:2000},
+        {text:'Blog WPG przeszedł zmianę szaty graficznej na...', hold:2800},
+        {text:'... jesienną', hold:2200},
+        {text:'Od teraz na blogu będzie widoczny tylko wpis na dzisiaj:', hold:2800},
+        {text:'Już wkrótce zacznie się także nowe wyzwanie związane z jesienią...', hold:3200},
+        {text:'Przejdź do Nowej wersji Bloga...', hold:null} // last stays until click
+      ];
+
+      const msgText = document.getElementById('msgText');
+      const controlArea = document.getElementById('controlArea');
+      const startBtn = document.getElementById('startBtn');
+      const flowArea = document.getElementById('flowArea');
+      const finalScreen = document.getElementById('finalScreen');
+      const finalLink = document.getElementById('finalLink');
+      const brand = document.getElementById('brand');
+      const leafDeco = document.getElementById('leafDeco');
+      const personalNote = document.getElementById('personalNote');
+      const arrowTopContainer = document.getElementById('arrowTopContainer');
+
+      const DEMO_FLAG = 'wpg_demo_done_v1';
+      const DEMO_NAME = 'wpg_demo_name_v1';
+
+      const sleep = ms => new Promise(r=>setTimeout(r, ms));
+
+      // show single message with in/out animation
+      async function showMessage(text, holdMs){
+        msgText.textContent = text;
+        // ensure classes reset
+        msgText.classList.remove('out');
+        void msgText.offsetWidth;
+        msgText.classList.add('in');
+        await sleep(1000); // match entrance animation length
+        if(holdMs === null) {
+          return;
+        }
+        await sleep(holdMs);
+        msgText.classList.remove('in');
+        msgText.classList.add('out');
+        await sleep(900); // match exit animation
+      }
+
+      async function runSequence(){
+        const done = localStorage.getItem(DEMO_FLAG);
+        if(done){
+          renderOnlyArrow();
+          return;
+        }
+        for(let i=0;i<sequence.length;i++){
+          const s = sequence[i];
+          await showMessage(s.text, s.hold);
+          if(s.hold === null){
+            controlArea.style.display = 'flex';
+            controlArea.setAttribute('aria-hidden','false');
+            break;
+          }
+        }
+      }
+
+      function renderOnlyArrow(){
+        // clear message area
+        msgText.textContent = '';
+        msgText.classList.remove('in','out');
+
+        // show the custom top title requested for repeat visitors
+        brand.textContent = 'Wiara przenogi góry'; // exact user text
+        brand.classList.add('show');
+        leafDeco.classList.add('show');
+
+        // insert a small label above the arrow ("Przejdź do bloga")
+        if(!document.getElementById('arrowTopLabel')){
+          const lbl = document.createElement('div');
+          lbl.id = 'arrowTopLabel';
+          lbl.className = 'hint';
+          lbl.style.marginBottom = '8px';
+          lbl.textContent = 'Przejdź do bloga';
+          arrowTopContainer.appendChild(lbl);
+        }
+
+        controlArea.style.display = 'flex';
+        controlArea.setAttribute('aria-hidden','false');
+
+        // make startBtn open site directly
+        startBtn.onclick = function(){
+          window.open('https://blogwpg.my.canva.site/','_blank','noopener');
+        };
+        startBtn.setAttribute('title','Przejdź do bloga');
+        startBtn.setAttribute('aria-label','Przejdź do bloga');
+      }
+
+      // start flow when arrow clicked (first-time visitors)
+      startBtn.addEventListener('click', async function(){
+        // if demo already done, this click will open site via onclick above; but for first-time run we proceed to language
+        const done = localStorage.getItem(DEMO_FLAG);
+        if(done){
+          // ensure onclick runs
+          return;
+        }
+
+        controlArea.style.display = 'none';
+        msgText.classList.remove('in');
+        msgText.classList.add('out');
+        await sleep(600);
+        msgText.textContent = '';
+        renderLanguageSelection();
+      });
+
+      function renderLanguageSelection(){
+        flowArea.innerHTML = '';
+        const p = document.createElement('div');
+        p.className = 'panel';
+        p.innerHTML = `<div style="font-weight:700; color:var(--accent-dark)">Wybierz język</div>`;
+        const langWrap = document.createElement('div');
+        langWrap.style.display='flex';
+        langWrap.style.gap='10px';
+        langWrap.style.marginTop='8px';
+        const btnPL = document.createElement('button');
+        btnPL.className='lang-btn';
+        btnPL.textContent='Polski';
+        btnPL.setAttribute('aria-label','Wybierz język polski');
+        const btnEN = document.createElement('button');
+        btnEN.className='lang-btn';
+        btnEN.textContent='English';
+        btnEN.setAttribute('aria-label','Wybierz język angielski');
+        langWrap.appendChild(btnPL);
+        langWrap.appendChild(btnEN);
+        p.appendChild(langWrap);
+        flowArea.appendChild(p);
+
+        btnPL.addEventListener('click', ()=> {
+          renderNameForm('PL');
+        });
+        btnEN.addEventListener('click', ()=> {
+          renderNameForm('EN');
+        });
+        btnPL.focus();
+      }
+
+      function renderNameForm(lang){
+        flowArea.innerHTML = '';
+        const wrap = document.createElement('div');
+        wrap.className = 'name-form';
+        const label = document.createElement('div');
+        label.style.fontWeight='700';
+        label.style.minWidth='200px';
+        label.textContent = (lang==='PL') ? 'Wpisz imię i nazwisko' : 'Enter name and surname';
+        const input = document.createElement('input');
+        input.className = 'name-input';
+        input.type = 'text';
+        input.placeholder = (lang==='PL') ? 'Imię i nazwisko' : 'Name and surname';
+        input.setAttribute('aria-label','Imię i nazwisko');
+        const btn = document.createElement('button');
+        btn.className = 'next-btn';
+        btn.textContent = 'Dalej';
+        btn.disabled = true;
+        wrap.appendChild(label);
+        wrap.appendChild(input);
+        wrap.appendChild(btn);
+        flowArea.appendChild(wrap);
+
+        input.addEventListener('input', ()=>{
+          btn.disabled = !input.value.trim();
+        });
+
+        input.addEventListener('keydown', (e)=>{
+          if(e.key === 'Enter' && input.value.trim()){
+            btn.click();
+          }
+        });
+
+        btn.addEventListener('click', ()=>{
+          const name = input.value.trim();
+          if(!name) return;
+          localStorage.setItem(DEMO_NAME, name);
+          renderFinalScreen(name);
+        });
+
+        input.focus();
+      }
+
+      function renderFinalScreen(name){
+        flowArea.innerHTML = '';
+        // show the final decorative title (only "Wiara Przenosi Góry")
+        brand.classList.add('show');
+        leafDeco.classList.add('show');
+
+        // show a subtle personal note (transparent background, not a white box)
+        personalNote.style.display = 'block';
+        personalNote.textContent = `Witaj, ${name} — zapraszam do nowej wersji.`;
+        // reveal CTA
+        finalScreen.classList.add('show');
+        finalScreen.setAttribute('aria-hidden','false');
+
+        // when user clicks the link, mark demo done
+        finalLink.addEventListener('click', (e)=>{
+          localStorage.setItem(DEMO_FLAG, '1');
+          // navigation via link occurs normally (opens new tab)
+        });
+      }
+
+      // run
+      runSequence();
+
+    })();
+  </script>
+</body>
+</html>
