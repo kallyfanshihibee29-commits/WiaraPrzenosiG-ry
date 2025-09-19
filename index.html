@@ -180,6 +180,25 @@
       .hint{font-size:14px}
       .panel{gap:8px}
     }
+  
+
+    /* inbox for returning visitors */
+    .inbox{padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(250,248,244,0.6));min-height:48px;display:flex;align-items:center;justify-content:center;color:var(--accent-dark);font-size:14px}
+
+  
+
+    /* inbox booth (clickable) */
+    .inbox-booth{ display:inline-flex; flex-direction:column; align-items:center; gap:6px; padding:10px 14px; border-radius:12px; border:1px solid rgba(0,0,0,0.06); background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(250,248,244,0.9)); box-shadow:0 8px 20px rgba(0,0,0,0.08); cursor:pointer; min-width:180px}
+    .inbox-booth .icon{width:36px;height:36px;border-radius:8px;background:linear-gradient(180deg,var(--accent-start),var(--accent-end)); display:grid; place-items:center; color:#fff; font-weight:700}
+    .inbox-booth .label{font-size:14px;color:var(--accent-dark);font-weight:700}
+    .inbox-booth .sub{font-size:12px;color:rgba(0,0,0,0.56)}
+
+    /* overlay card */
+    .overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.35); display:none; align-items:center; justify-content:center; z-index:1200}
+    .inbox-card{ background:#fff; border-radius:14px; padding:18px; width:92%; max-width:520px; box-shadow:0 20px 50px rgba(0,0,0,0.25); text-align:left; color:var(--accent-dark)}
+    .inbox-card .back{ display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:700; margin-bottom:12px}
+    .inbox-card .content{ min-height:120px; display:flex; align-items:center; justify-content:center; color:rgba(0,0,0,0.65)}
+
   </style>
 </head>
 <body>
@@ -216,8 +235,7 @@
       <a id="finalLink" class="cta-link" href="https://blogwpg.my.canva.site/" target="_blank" rel="noopener noreferrer">Przejdź do Bloga →</a>
     </div>
 
-    <div style="margin-top:14px" id="footerNote">
-      <div class="hint">Teraz nic nie klikaj</div>
+    
     </div>
   </div>
 
@@ -249,6 +267,45 @@
 
       const sleep = ms => new Promise(r=>setTimeout(r, ms));
 
+      // helper to create inbox overlay markup if not present
+      function ensureInboxOverlay(){
+        if(document.getElementById('inboxOverlay')) return;
+        const overlay = document.createElement('div');
+        overlay.id = 'inboxOverlay';
+        overlay.className = 'overlay';
+        overlay.setAttribute('aria-hidden','true');
+        overlay.innerHTML = `
+          <div class="inbox-card" role="document">
+            <div class="back" id="inboxBack" tabindex="0" aria-label="Wróć">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Powrót
+            </div>
+            <h3 id="inboxTitle" style="margin:0 0 8px 0">Skrzynka odbiorcza</h3>
+            <div class="content">tu pojawią się aktualności i nowości na blogu</div>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const back = document.getElementById('inboxBack');
+        back.addEventListener('click', closeInbox);
+        back.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') closeInbox(); });
+        overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeInbox(); });
+        document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeInbox(); });
+      }
+
+      function openInbox(){
+        ensureInboxOverlay();
+        const overlay = document.getElementById('inboxOverlay');
+        overlay.style.display = 'flex';
+        overlay.setAttribute('aria-hidden','false');
+      }
+      function closeInbox(){
+        const overlay = document.getElementById('inboxOverlay');
+        if(!overlay) return;
+        overlay.style.display = 'none';
+        overlay.setAttribute('aria-hidden','true');
+      }
+
       // show single message with in/out animation
       async function showMessage(text, holdMs){
         msgText.textContent = text;
@@ -272,6 +329,7 @@
           renderOnlyArrow();
           return;
         }
+
         for(let i=0;i<sequence.length;i++){
           const s = sequence[i];
           await showMessage(s.text, s.hold);
@@ -293,14 +351,37 @@
         brand.classList.add('show');
         leafDeco.classList.add('show');
 
-        // insert a small label above the arrow ("Przejdź do bloga")
+        // insert the inbox booth below the arrow label (for returning visitors)
+        if(!document.getElementById('inboxBooth')){
+          const boothWrap = document.createElement('div');
+          boothWrap.id = 'inboxBoothWrap';
+          boothWrap.style.marginTop = '10px';
+          const booth = document.createElement('div');
+          booth.id = 'inboxBooth';
+          booth.className = 'inbox-booth';
+          booth.setAttribute('role','button');
+          booth.setAttribute('tabindex','0');
+          booth.innerHTML = `<div class="icon">📮</div><div class="label">Skrzynka odbiorcza</div><div class="sub">Brak nowych zmian</div>`;
+          boothWrap.appendChild(booth);
+          arrowTopContainer.appendChild(boothWrap);
+
+          // onclick -> open overlay card that looks like separate card/page
+          booth.addEventListener('click', openInbox);
+          booth.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') openInbox(); });
+        }
+
+        // insert a small label below the inbox booth ("Przejdź do bloga")
         if(!document.getElementById('arrowTopLabel')){
           const lbl = document.createElement('div');
           lbl.id = 'arrowTopLabel';
           lbl.className = 'hint';
-          lbl.style.marginBottom = '8px';
+          lbl.style.marginTop = '8px';
           lbl.textContent = 'Przejdź do bloga';
           arrowTopContainer.appendChild(lbl);
+        } else {
+          // if it exists already, move it after the booth to ensure correct order
+          const existing = document.getElementById('arrowTopLabel');
+          arrowTopContainer.appendChild(existing);
         }
 
         controlArea.style.display = 'flex';
@@ -417,7 +498,7 @@
         finalScreen.classList.add('show');
         finalScreen.setAttribute('aria-hidden','false');
 
-        // when user clicks the link, mark demo done
+        // when user clicks the link, mark demo done and create inbox (nothing new yet)
         finalLink.addEventListener('click', (e)=>{
           localStorage.setItem(DEMO_FLAG, '1');
           // navigation via link occurs normally (opens new tab)
