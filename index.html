@@ -2,513 +2,222 @@
 <html lang="pl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Demo — Nowa wersja Blog WPG (jesienna)</title>
-  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>WPG — Pokaz zmian</title>
   <style>
     :root{
-      --bg:#f7d291;
-      --accent-dark:#7a1f12;
-      --accent-start:#d15518;
-      --accent-end:#f69628;
-      --card:#ffffff;
-      --rounded:16px;
-      --container-w:820px;
+      --bg:#ffffff;
+      --text:#000000;
+      --muted:rgba(0,0,0,0.55);
+      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
-      font-family:Roboto, Arial, sans-serif;
+      font-family:var(--font-stack);
       background:var(--bg);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
-      color:var(--accent-dark);
+      color:var(--text);
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
-    }
-    .wrap{
-      width:100%;
-      max-width:var(--container-w);
-      background:linear-gradient(180deg, rgba(255,250,242,0.95) 0%, rgba(255,255,255,0.9) 100%);
-      border-radius:var(--rounded);
-      padding:28px;
-      box-shadow:0 12px 40px rgba(0,0,0,0.12);
-      text-align:center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       overflow:hidden;
-      position:relative;
-      max-height:calc(100vh - 48px);
-      overflow:auto;
+      transition:background-color 280ms ease;
     }
 
-    /* Decorative final title (will show only "Wiara Przenosi Góry" or custom text) */
-    .brand{
-      font-family:Pacifico, sans-serif;
-      font-size:44px;
-      color:var(--accent-dark);
-      margin:6px 0 4px 0;
+    .container{
+      width:100%;
+      max-width:1000px;
+      padding:44px 28px;
+      text-align:center;
+      position:relative;
+      min-height:60vh;
+    }
+
+    /* animated background overlay — gradient transitions */
+    .bg-overlay{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity 600ms ease, background 450ms linear;
+      z-index:0;
+      background:linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 100%);
+    }
+
+    .stage{
+      position:relative;
+      z-index:2;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      min-height:55vh;
+      gap:20px;
+      padding:6vh 6vw;
+    }
+
+    .headline{
+      font-size:clamp(26px,6.6vw,52px);
+      font-weight:300;
+      letter-spacing:0.01em;
+      color:var(--text);
+      margin:0;
       opacity:0;
       transform:translateY(8px);
-      transition:opacity 1s ease, transform 1s ease;
-    }
-    .brand.show{opacity:1; transform:none}
-
-    /* small decorative leaf under final title */
-    .leaf-deco{
-      width:86px;
-      height:auto;
-      margin:6px auto 0;
-      opacity:0;
-      transform:translateY(6px);
-      transition:opacity 1s ease .2s, transform 1s ease .2s;
-      fill: #9b4a14;
-    }
-    .leaf-deco.show{opacity:1; transform:none}
-
-    /* message area */
-    .msg{
-      min-height:130px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:20px;
-      line-height:1.3;
-      color:var(--accent-dark);
-      margin-top:6px;
-    }
-    .msg .text{
-      display:inline-block;
-      padding:12px 18px;
-      border-radius:12px;
-      background:linear-gradient(90deg, rgba(209,85,24,0.04), rgba(246,150,40,0.03));
-      color:var(--accent-dark);
-      opacity:0;
-      transform:translateY(12px) scale(.985);
+      transition:opacity 420ms cubic-bezier(.22,.9,.32,1), transform 420ms cubic-bezier(.22,.9,.32,1);
+      line-height:1.05;
+      max-width:90%;
+      word-break:break-word;
+      white-space:normal;
     }
 
-    /* longer appear / disappear animations */
-    .in { animation:msgIn 1s cubic-bezier(.2,.9,.2,1) forwards; }
-    .out { animation:msgOut .9s cubic-bezier(.3,.8,.25,1) forwards; }
-    @keyframes msgIn { from{opacity:0; transform:translateY(12px) scale(.985)} to{opacity:1; transform:none} }
-    @keyframes msgOut { from{opacity:1; transform:none} to{opacity:0; transform:translateY(-12px) scale(.985)} }
+    .headline.visible{
+      opacity:1;
+      transform:translateY(0);
+    }
 
-    /* octagon circular button */
-    .center-control{
+    .meta{
       margin-top:18px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:12px;
-      flex-direction:column;
-    }
-    .octagon{
-      width:96px; height:96px;
-      display:grid; place-items:center;
-      background:linear-gradient(180deg,var(--accent-start),var(--accent-end));
-      clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
-      border-radius:14px;
-      box-shadow:0 10px 26px rgba(209,85,24,0.18);
-      cursor:pointer;
-      border:3px solid rgba(255,255,255,0.12);
-      transition:transform .18s ease, box-shadow .18s ease;
-    }
-    .octagon:active{ transform:translateY(2px) scale(.99) }
-    .octagon svg{ width:46px; height:46px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.12)); }
-
-    /* helper text */
-    .hint{font-size:13px;color:rgba(122,31,18,.8); margin-top:10px}
-
-    /* language & name form */
-    .panel{
-      margin-top:16px;
-      display:flex;
-      gap:12px;
-      align-items:center;
-      justify-content:center;
-      flex-wrap:wrap;
-    }
-    .lang-btn{
-      padding:12px 20px;
-      border-radius:12px;
-      border:1px solid rgba(122,31,18,.08);
-      background:linear-gradient(90deg, rgba(209,85,24,0.06), rgba(246,150,40,0.03));
-      cursor:pointer;
-      font-weight:700;
-      min-width:120px;
-    }
-    .lang-btn:focus{outline:3px solid rgba(209,85,24,.14)}
-    .name-form{display:flex; gap:8px; align-items:center; justify-content:center; margin-top:12px;}
-    .name-input{padding:12px 14px;border-radius:10px;border:1px solid rgba(0,0,0,0.08); min-width:260px}
-    .next-btn{padding:10px 14px;border-radius:10px;background:linear-gradient(90deg,var(--accent-start),var(--accent-end));color:#fff;border:none;cursor:pointer;font-weight:700}
-    .next-btn:disabled{opacity:.5; cursor:not-allowed}
-
-    /* final CTA */
-    .final-screen{ margin-top:18px; display:flex; flex-direction:column; align-items:center; gap:10px; opacity:0; transform:translateY(12px); transition:opacity 1s ease, transform 1s ease; }
-    .final-screen.show{ opacity:1; transform:none }
-    .cta-link{
-      display:inline-flex; align-items:center; gap:10px;
-      padding:12px 18px; border-radius:12px;
-      background:linear-gradient(90deg,var(--accent-start),var(--accent-end));
-      color:#fff; text-decoration:none; font-weight:700;
-      box-shadow:0 10px 30px rgba(209,85,24,.18);
+      font-size:15px;
+      color:var(--muted);
+      opacity:0.95;
     }
 
-    /* remove any internal white box under title by ensuring transparent backgrounds for inserted pieces */
-    .personal-note{ background:transparent; color:rgba(122,31,18,.85); font-size:14px; margin-top:6px; }
+    .note{
+      position:fixed;
+      left:0;right:0;bottom:18px;
+      text-align:center;
+      font-size:13px;
+      color:var(--muted);
+      z-index:3;
+    }
 
-    /* make sure content fits on smaller screens and scrolls if necessary */
+    .only-link .stage{justify-content:flex-start; padding-top:12vh}
+
+    /* mobile portrait polish */
     @media (max-width:520px){
-      body{padding:12px}
-      .wrap{padding:18px}
-      .brand{font-size:34px}
-      .msg{font-size:18px; min-height:110px}
-      .octagon{width:80px;height:80px}
-      .octagon svg{width:34px;height:34px}
-      .name-input{min-width:160px}
+      .container{padding:28px 18px}
+      .stage{min-height:60vh; padding:10vh 4vw}
+      .headline{font-size:clamp(20px,9vw,34px); max-width:100%;}
+      .note{bottom:12px; font-size:13px}
     }
-
-    /* extra mobile portrait polish */
-    @media (max-width:420px) and (orientation:portrait){
-      .wrap{max-height:calc(100vh - 24px); padding:14px}
-      .brand{font-size:28px}
-      .msg{font-size:17px; min-height:90px}
-      .octagon{width:72px;height:72px}
-      .octagon svg{width:30px;height:30px}
-      .name-input{min-width:140px}
-      .hint{font-size:14px}
-      .panel{gap:8px}
-    }
-  
-
-    /* inbox for returning visitors */
-    .inbox{padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(250,248,244,0.6));min-height:48px;display:flex;align-items:center;justify-content:center;color:var(--accent-dark);font-size:14px}
-
-  
-
-    /* inbox booth (clickable) */
-    .inbox-booth{ display:inline-flex; flex-direction:column; align-items:center; gap:6px; padding:10px 14px; border-radius:12px; border:1px solid rgba(0,0,0,0.06); background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(250,248,244,0.9)); box-shadow:0 8px 20px rgba(0,0,0,0.08); cursor:pointer; min-width:180px}
-    .inbox-booth .icon{width:36px;height:36px;border-radius:8px;background:linear-gradient(180deg,var(--accent-start),var(--accent-end)); display:grid; place-items:center; color:#fff; font-weight:700}
-    .inbox-booth .label{font-size:14px;color:var(--accent-dark);font-weight:700}
-    .inbox-booth .sub{font-size:12px;color:rgba(0,0,0,0.56)}
-
-    /* overlay card */
-    .overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.35); display:none; align-items:center; justify-content:center; z-index:1200}
-    .inbox-card{ background:#fff; border-radius:14px; padding:18px; width:92%; max-width:520px; box-shadow:0 20px 50px rgba(0,0,0,0.25); text-align:left; color:var(--accent-dark)}
-    .inbox-card .back{ display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:700; margin-bottom:12px}
-    .inbox-card .content{ min-height:120px; display:flex; align-items:center; justify-content:center; color:rgba(0,0,0,0.65)}
 
   </style>
 </head>
 <body>
-  <div class="wrap" role="main" aria-labelledby="demo-title">
-    <div id="titleWrap" style="display:block">
-      <!-- final title will show only "Wiara Przenosi Góry" or custom text -->
-      <div id="brand" class="brand" aria-hidden="true">Wiara Przenosi Góry</div>
-      <svg id="leafDeco" class="leaf-deco" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M12 2c4 0 8 2 10 6-3 1-6 5-10 8-4-3-7-6-10-8 2-4 6-6 10-6z" />
-      </svg>
+  <div class="bg-overlay" id="bgOverlay" aria-hidden="true"></div>
+
+  <main class="container" id="app">
+    <div class="stage" id="stage">
+      <h1 class="headline" id="headline" aria-live="polite"></h1>
+      <div class="meta" id="meta" aria-hidden="true"></div>
     </div>
+  </main>
 
-    <div class="msg" id="msgArea" aria-live="polite">
-      <div class="text" id="msgText" aria-hidden="false"></div>
-    </div>
-
-    <div id="arrowTopContainer"></div>
-
-    <div class="center-control" id="controlArea" aria-hidden="true" style="display:none">
-      <button class="octagon" id="startBtn" aria-label="Przejdź do nowej wersji" title="Przejdź do nowej wersji">
-        <!-- arrow icon -->
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.08)"/>
-          <path d="M8 12h8M14 8l4 4-4 4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-    </div>
-
-    <div id="flowArea" style="margin-top:8px"></div>
-
-    <!-- final CTA area (hidden until the end) -->
-    <div class="final-screen" id="finalScreen" aria-hidden="true">
-      <div class="personal-note" id="personalNote" style="display:none"></div>
-      <a id="finalLink" class="cta-link" href="https://blogwpg.my.canva.site/" target="_blank" rel="noopener noreferrer">Przejdź do Bloga →</a>
-    </div>
-
-    
-    </div>
-  </div>
+  <div class="note" id="note" aria-hidden="true"></div>
 
   <script>
     (function(){
-      // messages sequence (Polish) - longer hold times for spokojniejszy efekt
-      const sequence = [
-        {text:'Witaj', hold:2000},
-        {text:'Blog WPG przeszedł zmianę szaty graficznej na...', hold:2800},
-        {text:'... jesienną', hold:2200},
-        {text:'Od teraz na blogu będzie widoczny tylko wpis na dzisiaj:', hold:2800},
-        {text:'Już wkrótce zacznie się także nowe wyzwanie związane z jesienią...', hold:3200},
-        {text:'Przejdź do Nowej wersji Bloga...', hold:null} // last stays until click
-      ];
+      const STORAGE_KEY = 'wpg_pokaz_played_v1';
+      const BLOG_URL = 'https://blogwpg.my.canva.site/';
+      const played = localStorage.getItem(STORAGE_KEY) === '1';
+      const headline = document.getElementById('headline');
+      const bg = document.getElementById('bgOverlay');
+      const note = document.getElementById('note');
 
-      const msgText = document.getElementById('msgText');
-      const controlArea = document.getElementById('controlArea');
-      const startBtn = document.getElementById('startBtn');
-      const flowArea = document.getElementById('flowArea');
-      const finalScreen = document.getElementById('finalScreen');
-      const finalLink = document.getElementById('finalLink');
-      const brand = document.getElementById('brand');
-      const leafDeco = document.getElementById('leafDeco');
-      const personalNote = document.getElementById('personalNote');
-      const arrowTopContainer = document.getElementById('arrowTopContainer');
-
-      const DEMO_FLAG = 'wpg_demo_done_v1';
-      const DEMO_NAME = 'wpg_demo_name_v1';
-
-      const sleep = ms => new Promise(r=>setTimeout(r, ms));
-
-      // helper to create inbox overlay markup if not present
-      function ensureInboxOverlay(){
-        if(document.getElementById('inboxOverlay')) return;
-        const overlay = document.createElement('div');
-        overlay.id = 'inboxOverlay';
-        overlay.className = 'overlay';
-        overlay.setAttribute('aria-hidden','true');
-        overlay.innerHTML = `
-          <div class="inbox-card" role="document">
-            <div class="back" id="inboxBack" tabindex="0" aria-label="Wróć">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Powrót
-            </div>
-            <h3 id="inboxTitle" style="margin:0 0 8px 0">Skrzynka odbiorcza</h3>
-            <div class="content">tu pojawią się aktualności i nowości na blogu</div>
-          </div>
-        `;
-        document.body.appendChild(overlay);
-
-        const back = document.getElementById('inboxBack');
-        back.addEventListener('click', closeInbox);
-        back.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') closeInbox(); });
-        overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeInbox(); });
-        document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeInbox(); });
+      // If visitor already saw the show, redirect immediately to blog
+      if(played){
+        // small delay to let browser process (but effectively immediate)
+        window.location.replace(BLOG_URL);
+        return;
       }
 
-      function openInbox(){
-        ensureInboxOverlay();
-        const overlay = document.getElementById('inboxOverlay');
-        overlay.style.display = 'flex';
-        overlay.setAttribute('aria-hidden','false');
-      }
-      function closeInbox(){
-        const overlay = document.getElementById('inboxOverlay');
-        if(!overlay) return;
-        overlay.style.display = 'none';
-        overlay.setAttribute('aria-hidden','true');
-      }
-
-      // show single message with in/out animation
-      async function showMessage(text, holdMs){
-        msgText.textContent = text;
-        // ensure classes reset
-        msgText.classList.remove('out');
-        void msgText.offsetWidth;
-        msgText.classList.add('in');
-        await sleep(1000); // match entrance animation length
-        if(holdMs === null) {
-          return;
-        }
-        await sleep(holdMs);
-        msgText.classList.remove('in');
-        msgText.classList.add('out');
-        await sleep(900); // match exit animation
+      // helper: show a text with fade in/out (longer durations)
+      function showText(text, timeVisible = 1800){
+        return new Promise(resolve => {
+          headline.textContent = text;
+          headline.classList.add('visible');
+          setTimeout(()=>{
+            headline.classList.remove('visible');
+            setTimeout(resolve, 420);
+          }, timeVisible);
+        });
       }
 
-      async function runSequence(){
-        const done = localStorage.getItem(DEMO_FLAG);
-        if(done){
-          renderOnlyArrow();
-          return;
-        }
-
-        for(let i=0;i<sequence.length;i++){
-          const s = sequence[i];
-          await showMessage(s.text, s.hold);
-          if(s.hold === null){
-            controlArea.style.display = 'flex';
-            controlArea.setAttribute('aria-hidden','false');
-            break;
-          }
-        }
-      }
-
-      function renderOnlyArrow(){
-        // clear message area
-        msgText.textContent = '';
-        msgText.classList.remove('in','out');
-
-        // show the custom top title requested for repeat visitors
-        brand.textContent = 'Wiara przenogi góry'; // exact user text
-        brand.classList.add('show');
-        leafDeco.classList.add('show');
-
-        // insert the inbox booth below the arrow label (for returning visitors)
-        if(!document.getElementById('inboxBooth')){
-          const boothWrap = document.createElement('div');
-          boothWrap.id = 'inboxBoothWrap';
-          boothWrap.style.marginTop = '10px';
-          const booth = document.createElement('div');
-          booth.id = 'inboxBooth';
-          booth.className = 'inbox-booth';
-          booth.setAttribute('role','button');
-          booth.setAttribute('tabindex','0');
-          booth.innerHTML = `<div class="icon">📮</div><div class="label">Skrzynka odbiorcza</div><div class="sub">Brak nowych zmian</div>`;
-          boothWrap.appendChild(booth);
-          arrowTopContainer.appendChild(boothWrap);
-
-          // onclick -> open overlay card that looks like separate card/page
-          booth.addEventListener('click', openInbox);
-          booth.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') openInbox(); });
-        }
-
-        // insert a small label below the inbox booth ("Przejdź do bloga")
-        if(!document.getElementById('arrowTopLabel')){
-          const lbl = document.createElement('div');
-          lbl.id = 'arrowTopLabel';
-          lbl.className = 'hint';
-          lbl.style.marginTop = '8px';
-          lbl.textContent = 'Przejdź do bloga';
-          arrowTopContainer.appendChild(lbl);
-        } else {
-          // if it exists already, move it after the booth to ensure correct order
-          const existing = document.getElementById('arrowTopLabel');
-          arrowTopContainer.appendChild(existing);
-        }
-
-        controlArea.style.display = 'flex';
-        controlArea.setAttribute('aria-hidden','false');
-
-        // make startBtn open site directly
-        startBtn.onclick = function(){
-          window.open('https://blogwpg.my.canva.site/','_blank','noopener');
+      // show text and keep it visible until caller hides it
+      function showTextPersistent(text){
+        headline.textContent = text;
+        headline.classList.add('visible');
+        return () => {
+          headline.classList.remove('visible');
         };
-        startBtn.setAttribute('title','Przejdź do bloga');
-        startBtn.setAttribute('aria-label','Przejdź do bloga');
       }
 
-      // start flow when arrow clicked (first-time visitors)
-      startBtn.addEventListener('click', async function(){
-        // if demo already done, this click will open site via onclick above; but for first-time run we proceed to language
-        const done = localStorage.getItem(DEMO_FLAG);
-        if(done){
-          // ensure onclick runs
-          return;
-        }
-
-        controlArea.style.display = 'none';
-        msgText.classList.remove('in');
-        msgText.classList.add('out');
-        await sleep(600);
-        msgText.textContent = '';
-        renderLanguageSelection();
-      });
-
-      function renderLanguageSelection(){
-        flowArea.innerHTML = '';
-        const p = document.createElement('div');
-        p.className = 'panel';
-        p.innerHTML = `<div style="font-weight:700; color:var(--accent-dark)">Wybierz język</div>`;
-        const langWrap = document.createElement('div');
-        langWrap.style.display='flex';
-        langWrap.style.gap='10px';
-        langWrap.style.marginTop='8px';
-        const btnPL = document.createElement('button');
-        btnPL.className='lang-btn';
-        btnPL.textContent='Polski';
-        btnPL.setAttribute('aria-label','Wybierz język polski');
-        const btnEN = document.createElement('button');
-        btnEN.className='lang-btn';
-        btnEN.textContent='English';
-        btnEN.setAttribute('aria-label','Wybierz język angielski');
-        langWrap.appendChild(btnPL);
-        langWrap.appendChild(btnEN);
-        p.appendChild(langWrap);
-        flowArea.appendChild(p);
-
-        btnPL.addEventListener('click', ()=> {
-          renderNameForm('PL');
-        });
-        btnEN.addEventListener('click', ()=> {
-          renderNameForm('EN');
-        });
-        btnPL.focus();
-      }
-
-      function renderNameForm(lang){
-        flowArea.innerHTML = '';
-        const wrap = document.createElement('div');
-        wrap.className = 'name-form';
-        const label = document.createElement('div');
-        label.style.fontWeight='700';
-        label.style.minWidth='200px';
-        label.textContent = (lang==='PL') ? 'Wpisz imię i nazwisko' : 'Enter name and surname';
-        const input = document.createElement('input');
-        input.className = 'name-input';
-        input.type = 'text';
-        input.placeholder = (lang==='PL') ? 'Imię i nazwisko' : 'Name and surname';
-        input.setAttribute('aria-label','Imię i nazwisko');
-        const btn = document.createElement('button');
-        btn.className = 'next-btn';
-        btn.textContent = 'Dalej';
-        btn.disabled = true;
-        wrap.appendChild(label);
-        wrap.appendChild(input);
-        wrap.appendChild(btn);
-        flowArea.appendChild(wrap);
-
-        input.addEventListener('input', ()=>{
-          btn.disabled = !input.value.trim();
-        });
-
-        input.addEventListener('keydown', (e)=>{
-          if(e.key === 'Enter' && input.value.trim()){
-            btn.click();
-          }
-        });
-
-        btn.addEventListener('click', ()=>{
-          const name = input.value.trim();
-          if(!name) return;
-          localStorage.setItem(DEMO_NAME, name);
-          renderFinalScreen(name);
-        });
-
-        input.focus();
-      }
-
-      function renderFinalScreen(name){
-        flowArea.innerHTML = '';
-        // show the final decorative title (only "Wiara Przenosi Góry")
-        brand.classList.add('show');
-        leafDeco.classList.add('show');
-
-        // show a subtle personal note (transparent background, not a white box)
-        personalNote.style.display = 'block';
-        personalNote.textContent = `Witaj, ${name} — zapraszam do nowej wersji.`;
-        // reveal CTA
-        finalScreen.classList.add('show');
-        finalScreen.setAttribute('aria-hidden','false');
-
-        // when user clicks the link, mark demo done and create inbox (nothing new yet)
-        finalLink.addEventListener('click', (e)=>{
-          localStorage.setItem(DEMO_FLAG, '1');
-          // navigation via link occurs normally (opens new tab)
+      // animate background overlay to a given css background (gradient or color), fade in/out
+      function fadeBgTo(bgCss, fadeIn = 600, hold = 2000, fadeOut = 600){
+        return new Promise(resolve=>{
+          bg.style.transition = `opacity ${fadeIn}ms ease, background ${Math.max(fadeIn,fadeOut)}ms linear`;
+          bg.style.background = bgCss;
+          requestAnimationFrame(()=>{ bg.style.opacity = '1'; });
+          setTimeout(()=>{
+            setTimeout(()=>{
+              bg.style.transition = `opacity ${fadeOut}ms ease`;
+              bg.style.opacity = '0';
+              setTimeout(resolve, fadeOut + 40);
+            }, hold);
+          }, fadeIn);
         });
       }
 
-      // run
-      runSequence();
+      async function runShow(){
+        note.textContent = '';
 
+        await showText('Witaj', 1800);
+        await showText('WPG przeszło małe - wielkie zmiany', 2200);
+        await showText('Zmieniła się szata graficzna, na...', 1800);
+
+        // show '...jesienną' and keep it while background sequence runs
+        const hideJesienna = showTextPersistent('...jesienną');
+
+        // background gradient/color sequence
+        await fadeBgTo('linear-gradient(180deg, #717c6b 0%, #6f7868 100%)', 450, 2200, 450);
+        await fadeBgTo('linear-gradient(180deg, #96a590 0%, #8fa38a 100%)', 500, 1200, 500);
+        await fadeBgTo('linear-gradient(180deg, #b77d4e 0%, #a66f3e 100%)', 500, 2200, 500);
+        await fadeBgTo('linear-gradient(180deg, #e8a169 0%, #e7a06b 100%)', 420, 1200, 420);
+
+        // return to white and only then hide the jesienna text
+        await fadeBgTo('linear-gradient(180deg, #ffffff 0%, #ffffff 100%)', 420, 80, 420);
+        hideJesienna();
+
+        await new Promise(r => setTimeout(r, 260));
+
+        await showText('Zmianę szaty przeszedł także...', 1800);
+        await showText('... Codzienny cytat, oraz Losowanie Patrona', 2200);
+        await showText('Już 1 października pojawi się także...', 1800);
+        await showText('...', 800);
+        await showText('Jesienne Wyzwanie...', 2000);
+
+        // now show final call-to-action text before redirect
+        await showText('Odkryj jesienne WPG', 2000);
+
+        // mark as played then redirect to blog
+        try{ localStorage.setItem(STORAGE_KEY,'1'); }catch(e){}
+        // short delay to allow fade to finish and give user a moment
+        setTimeout(()=>{
+          window.location.replace(BLOG_URL);
+        }, 220);
+      }
+
+      // start
+      setTimeout(()=> runShow(), 300);
+
+      // expose for debugging
+      window.wpgShow = {runShow};
     })();
   </script>
 </body>
 </html>
+
